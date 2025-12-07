@@ -100,12 +100,28 @@
       text-transform: uppercase;
       color: var(--accent);
       text-shadow: 0 0 18px rgba(0, 0, 0, 0.9);
-      margin-bottom: 4px;
+      margin-bottom: 6px;
     }
 
-    .subtitle {
-      font-size: 0.95rem;
-      opacity: 0.85;
+    .subtitle-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+
+    .subtitle-main {
+      opacity: 0.9;
+    }
+
+    .subtitle-countdown {
+      font-size: 0.85rem;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.18);
     }
 
     .panels {
@@ -114,7 +130,7 @@
       gap: 16px;
       position: relative;
       z-index: 2;
-      height: calc(100vh - 130px);
+      height: calc(100vh - 150px);
     }
 
     .panel {
@@ -156,6 +172,32 @@
       font-size: 1.3rem;
     }
 
+    .top-three {
+      font-size: 0.8rem;
+      margin-bottom: 6px;
+      padding: 4px 8px;
+      border-radius: 12px;
+      background: rgba(255, 75, 92, 0.12);
+      border: 1px solid rgba(255, 75, 92, 0.35);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .top-three span.label {
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      font-size: 0.72rem;
+    }
+
+    .top-three span.names {
+      opacity: 0.9;
+    }
+
     .list {
       margin-top: 6px;
       overflow-y: auto;
@@ -180,15 +222,15 @@
       margin-bottom: 5px;
       background: rgba(255, 255, 255, 0.02);
       border: 1px solid transparent;
-      animation: slideIn 0.4s ease forwards;
       opacity: 0;
-      transform: translateY(8px);
+      transform: translateY(8px) scale(0.98);
+      animation: fadeInUp 0.45s ease forwards;
     }
 
-    @keyframes slideIn {
+    @keyframes fadeInUp {
       to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateY(0) scale(1);
       }
     }
 
@@ -198,6 +240,14 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sparkle {
+      font-size: 0.85rem;
+      opacity: 0.95;
     }
 
     .entry-count {
@@ -211,6 +261,28 @@
 
     .entry--naughty {
       border-color: rgba(255, 75, 92, 0.4);
+    }
+
+    .entry--highlight {
+      box-shadow: 0 0 12px rgba(255, 255, 255, 0.16),
+                  0 0 20px rgba(255, 215, 130, 0.4);
+      position: relative;
+    }
+
+    .entry--highlight::after {
+      content: "";
+      position: absolute;
+      inset: -2px;
+      border-radius: inherit;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      pointer-events: none;
+      animation: glowPulse 1.8s ease-in-out infinite;
+    }
+
+    @keyframes glowPulse {
+      0% { opacity: 0.2; box-shadow: 0 0 6px rgba(255,255,255,0.2); }
+      50% { opacity: 0.95; box-shadow: 0 0 18px rgba(255,215,130,0.9); }
+      100% { opacity: 0.2; box-shadow: 0 0 6px rgba(255,255,255,0.2); }
     }
 
     .footer {
@@ -252,12 +324,20 @@
     })();
   </script>
 
+  <!-- Santa Ho Ho Ho audio (upload hohoho.mp3 to this repo) -->
+  <audio id="santa-audio" src="hohoho.mp3" preload="auto"></audio>
+
   <div class="frame">
     <div class="lights" id="lights"></div>
 
     <div class="header">
       <div class="title">Santa's Naughty &amp; Nice Control Center</div>
-      <div class="subtitle">Live coworker nominations · (GitHub CSV version)</div>
+      <div class="subtitle-row">
+        <span class="subtitle-main">Live coworker nominations</span>
+        <span class="subtitle-countdown" id="refresh-countdown">
+          Next refresh in 15s
+        </span>
+      </div>
     </div>
 
     <div class="panels">
@@ -280,6 +360,10 @@
             <span>Naughty List</span>
           </div>
           <span class="tag">Coworker Nominations</span>
+        </div>
+        <div class="top-three" id="naughty-top3" style="display:none;">
+          <span class="label">Top 3 Naughty:</span>
+          <span class="names"></span>
         </div>
         <div class="list" id="naughty-list"></div>
         <div class="footer" id="naughty-footer">Loading…</div>
@@ -323,9 +407,15 @@
       }
     })();
 
-    // Local CSV paths in the same repo
-    const NICE_CSV_URL    = "nice.csv";
-    const NAUGHTY_CSV_URL = "naughty.csv";
+    // Refresh timing
+    const REFRESH_INTERVAL_MS = 15000; // 15 seconds
+    let countdownSeconds = REFRESH_INTERVAL_MS / 1000;
+    let countdownTimerId = null;
+
+    const NICE_CSV_URL =
+      "https://raw.githubusercontent.com/nwilson1211-cmyk/naughty-nice-dashboard/main/nice.csv";
+    const NAUGHTY_CSV_URL =
+      "https://raw.githubusercontent.com/nwilson1211-cmyk/naughty-nice-dashboard/main/naughty.csv";
 
     const NICE_NAME_COL    = "Who are you nominating for the NICE List?";
     const NAUGHTY_NAME_COL = "Who are you nominating for the NAUGHTY List?";
@@ -397,16 +487,32 @@
 
       if (entries.length === 0) {
         footer.textContent = "No nominations yet – scan the QR to get started!";
-        return;
+        return entries;
       }
 
       for (const [name, count] of entries) {
         const div = document.createElement("div");
         div.className = "entry entry--" + (type === "nice" ? "nice" : "naughty");
 
+        // Highlight people with multiple nominations
+        if (count >= 2) {
+          div.classList.add("entry--highlight");
+        }
+
         const nameSpan = document.createElement("span");
         nameSpan.className = "entry-name";
-        nameSpan.textContent = name;
+
+        // Sparkle icon for multiple nominations
+        if (count >= 2) {
+          const sparkle = document.createElement("span");
+          sparkle.className = "sparkle";
+          sparkle.textContent = "✨";
+          nameSpan.appendChild(sparkle);
+        }
+
+        const textNode = document.createElement("span");
+        textNode.textContent = name;
+        nameSpan.appendChild(textNode);
 
         const countSpan = document.createElement("span");
         countSpan.className = "entry-count";
@@ -419,6 +525,45 @@
 
       const total = entries.reduce((sum, [, c]) => sum + c, 0);
       footer.textContent = `${entries.length} coworkers · ${total} total nominations`;
+
+      return entries;
+    }
+
+    function renderTopThreeNaughty(counts) {
+      const top3Div = document.getElementById("naughty-top3");
+      const namesSpan = top3Div.querySelector(".names");
+
+      const entries = Object.entries(counts)
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+        .slice(0, 3);
+
+      if (!entries.length) {
+        top3Div.style.display = "none";
+        return;
+      }
+
+      const text = entries
+        .map(([name, count], index) => {
+          const place = index + 1;
+          return `${place}) ${name} (${count})`;
+        })
+        .join(" · ");
+
+      namesSpan.textContent = text;
+      top3Div.style.display = "flex";
+    }
+
+    function playSantaSound() {
+      const audio = document.getElementById("santa-audio");
+      if (!audio) return;
+      try {
+        audio.currentTime = 0;
+        audio.play().catch(() => {
+          // Ignore autoplay restrictions; user can tap once to enable
+        });
+      } catch (e) {
+        console.warn("Audio playback issue:", e);
+      }
     }
 
     async function refreshDashboard() {
@@ -440,14 +585,48 @@
         const naughtyCounts = buildCounts(naughtyData, NAUGHTY_NAME_COL);
 
         renderList("nice-list", "nice-footer", niceCounts, "nice");
-        renderList("naughty-list", "naughty-footer", naughtyCounts, "naughty");
+        const naughtyEntries = renderList("naughty-list", "naughty-footer", naughtyCounts, "naughty");
+        renderTopThreeNaughty(naughtyCounts);
+
+        // Little Santa audio cue on each refresh
+        playSantaSound();
       } catch (err) {
         console.error("Dashboard refresh error:", err);
       }
     }
 
-    refreshDashboard();
-    setInterval(refreshDashboard, 60000);
+    function startCountdown() {
+      const countdownEl = document.getElementById("refresh-countdown");
+      if (!countdownEl) return;
+
+      // Clear any previous timer
+      if (countdownTimerId !== null) {
+        clearInterval(countdownTimerId);
+      }
+
+      countdownSeconds = REFRESH_INTERVAL_MS / 1000;
+      countdownEl.textContent = `Next refresh in ${countdownSeconds}s`;
+
+      countdownTimerId = setInterval(() => {
+        countdownSeconds -= 1;
+        if (countdownSeconds <= 0) {
+          countdownEl.textContent = "Refreshing…";
+          countdownSeconds = 0;
+        } else {
+          countdownEl.textContent = `Next refresh in ${countdownSeconds}s`;
+        }
+      }, 1000);
+    }
+
+    // Initial load + timers
+    (function init() {
+      refreshDashboard();
+      startCountdown();
+      setInterval(() => {
+        refreshDashboard();
+        startCountdown();
+      }, REFRESH_INTERVAL_MS);
+    })();
   </script>
 </body>
 </html>
