@@ -202,5 +202,391 @@
     }
     .list::-webkit-scrollbar-thumb {
       background: rgba(255, 255, 255, 0.25);
-      border-radius: 99
+      border-radius: 999px;
+    }
 
+    .entry {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 10px;
+      border-radius: 999px;
+      margin-bottom: 5px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid transparent;
+      opacity: 0;
+      transform: translateY(8px) scale(0.98);
+      animation: fadeInUp 0.45s ease forwards;
+    }
+
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .entry-name {
+      font-size: 0.9rem;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sparkle {
+      font-size: 0.85rem;
+      opacity: 0.95;
+    }
+
+    .entry-count {
+      font-size: 0.8rem;
+      opacity: 0.85;
+    }
+
+    .entry--nice {
+      border-color: rgba(61, 220, 132, 0.4);
+    }
+
+    .entry--naughty {
+      border-color: rgba(255, 75, 92, 0.4);
+    }
+
+    .entry--highlight {
+      box-shadow: 0 0 12px rgba(255, 255, 255, 0.16),
+                  0 0 20px rgba(255, 215, 130, 0.4);
+      position: relative;
+    }
+
+    .entry--highlight::after {
+      content: "";
+      position: absolute;
+      inset: -2px;
+      border-radius: inherit;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      pointer-events: none;
+      animation: glowPulse 1.8s ease-in-out infinite;
+    }
+
+    @keyframes glowPulse {
+      0% { opacity: 0.2; box-shadow: 0 0 6px rgba(255,255,255,0.2); }
+      50% { opacity: 0.95; box-shadow: 0 0 18px rgba(255,215,130,0.9); }
+      100% { opacity: 0.2; box-shadow: 0 0 6px rgba(255,255,255,0.2); }
+    }
+
+    .footer {
+      margin-top: 6px;
+      font-size: 0.7rem;
+      text-align: right;
+      opacity: 0.7;
+    }
+
+    @media (max-width: 900px) {
+      .panels {
+        grid-template-columns: 1fr;
+        height: auto;
+      }
+      body {
+        overflow-y: auto;
+        height: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Snowflakes -->
+  <script>
+    (function createSnow() {
+      const numFlakes = 60;
+      for (let i = 0; i < numFlakes; i++) {
+        const span = document.createElement("span");
+        span.className = "snowflake";
+        span.textContent = "❄";
+        const left = Math.random() * 100;
+        const delay = Math.random() * 5;
+        const duration = 8 + Math.random() * 8;
+        span.style.left = left + "vw";
+        span.style.animationDelay = delay + "s";
+        span.style.animationDuration = duration + "s";
+        document.body.appendChild(span);
+      }
+    })();
+  </script>
+
+  <!-- Santa Ho Ho Ho audio (upload hohoho.mp3 to this repo) -->
+  <audio id="santa-audio" src="hohoho.mp3" preload="auto"></audio>
+
+  <div class="frame">
+    <div class="lights" id="lights"></div>
+
+    <div class="header">
+      <div class="title">Santa's Naughty &amp; Nice Control Center</div>
+      <div class="subtitle-row">
+        <span class="subtitle-main">Live coworker nominations</span>
+      </div>
+    </div>
+
+    <div class="panels">
+      <section class="panel" id="nice-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="panel-icon">🎁</span>
+            <span>Nice List</span>
+          </div>
+          <span class="tag">Coworker Nominations</span>
+        </div>
+        <div class="list" id="nice-list"></div>
+        <div class="footer" id="nice-footer">Loading…</div>
+      </section>
+
+      <section class="panel" id="naughty-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="panel-icon">😈</span>
+            <span>Naughty List</span>
+          </div>
+          <span class="tag">Coworker Nominations</span>
+        </div>
+        <div class="top-three" id="naughty-top3" style="display:none;">
+          <span class="label">Top 3 Naughty:</span>
+          <span class="names"></span>
+        </div>
+        <div class="list" id="naughty-list"></div>
+        <div class="footer" id="naughty-footer">Loading…</div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    // Add animated "lights" around the border
+    (function createLights() {
+      const lights = document.getElementById("lights");
+      const positions = 40;
+      for (let i = 0; i < positions; i++) {
+        const bulb = document.createElement("div");
+        bulb.className = "light-bulb";
+        const edge = i % 4;
+        const offset = (i % 10) * 10;
+        let color;
+        switch (i % 4) {
+          case 0: color = "#ff4b5c"; break;
+          case 1: color = "#3ddc84"; break;
+          case 2: color = "#ffd66b"; break;
+          default: color = "#66a3ff"; break;
+        }
+        bulb.style.color = color;
+        bulb.style.animationDelay = (Math.random() * 2) + "s";
+        if (edge === 0) {
+          bulb.style.top = "4px";
+          bulb.style.left = 5 + offset + "%";
+        } else if (edge === 1) {
+          bulb.style.bottom = "4px";
+          bulb.style.left = 5 + offset + "%";
+        } else if (edge === 2) {
+          bulb.style.left = "4px";
+          bulb.style.top = 5 + offset + "%";
+        } else {
+          bulb.style.right = "4px";
+          bulb.style.top = 5 + offset + "%";
+        }
+        lights.appendChild(bulb);
+      }
+    })();
+
+    // Refresh timing (still refreshes every 15 seconds, just no visible countdown)
+    const REFRESH_INTERVAL_MS = 15000; // 15 seconds
+
+    const NICE_CSV_URL =
+      "https://raw.githubusercontent.com/nwilson1211-cmyk/naughty-nice-dashboard/main/nice.csv";
+    const NAUGHTY_CSV_URL =
+      "https://raw.githubusercontent.com/nwilson1211-cmyk/naughty-nice-dashboard/main/naughty.csv";
+
+    const NICE_NAME_COL    = "Who are you nominating for the NICE List?";
+    const NAUGHTY_NAME_COL = "Who are you nominating for the NAUGHTY List?";
+
+    async function fetchCsv(url, which, footerEl) {
+      try {
+        const res = await fetch(url, { cache: "no-store" });
+        if (!res.ok) {
+          footerEl.textContent = which + " error: HTTP " + res.status;
+          throw new Error(which + " HTTP " + res.status + " " + res.statusText);
+        }
+        const text = await res.text();
+        return text;
+      } catch (err) {
+        console.error(which + " fetch error:", err);
+        footerEl.textContent = which + " fetch error";
+        throw err;
+      }
+    }
+
+    function parseCsv(text) {
+      const lines = text.trim().split(/\r?\n/);
+      if (lines.length < 2) return { headers: [], rows: [] };
+
+      const headers = lines[0].split(",").map(h => h.replace(/^"|"$/g, ""));
+      const rows = lines.slice(1).map(line => {
+        const parts = [];
+        let inQuotes = false;
+        let current = "";
+        for (let i = 0; i < line.length; i++) {
+          const ch = line[i];
+          if (ch === '"' && line[i + 1] === '"') {
+            current += '"';
+            i++;
+          } else if (ch === '"') {
+            inQuotes = !inQuotes;
+          } else if (ch === "," && !inQuotes) {
+            parts.push(current);
+            current = "";
+          } else {
+            current += ch;
+          }
+        }
+        parts.push(current);
+        return parts.map(v => v.replace(/^"|"$/g, "").trim());
+      });
+      return { headers, rows };
+    }
+
+    function buildCounts(data, colName) {
+      const idx = data.headers.indexOf(colName);
+      if (idx === -1) return {};
+      const counts = {};
+      for (const row of data.rows) {
+        const name = row[idx]?.trim();
+        if (!name) continue;
+        counts[name] = (counts[name] || 0) + 1;
+      }
+      return counts;
+    }
+
+    function renderList(containerId, footerId, counts, type) {
+      const container = document.getElementById(containerId);
+      const footer = document.getElementById(footerId);
+      container.innerHTML = "";
+
+      const entries = Object.entries(counts)
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+
+      if (entries.length === 0) {
+        footer.textContent = "No nominations yet – scan the QR to get started!";
+        return entries;
+      }
+
+      for (const [name, count] of entries) {
+        const div = document.createElement("div");
+        div.className = "entry entry--" + (type === "nice" ? "nice" : "naughty");
+
+        // Highlight people with multiple nominations
+        if (count >= 2) {
+          div.classList.add("entry--highlight");
+        }
+
+        const nameSpan = document.createElement("span");
+        nameSpan.className = "entry-name";
+
+        // Sparkle icon for multiple nominations
+        if (count >= 2) {
+          const sparkle = document.createElement("span");
+          sparkle.className = "sparkle";
+          sparkle.textContent = "✨";
+          nameSpan.appendChild(sparkle);
+        }
+
+        const textNode = document.createElement("span");
+        textNode.textContent = name;
+        nameSpan.appendChild(textNode);
+
+        const countSpan = document.createElement("span");
+        countSpan.className = "entry-count";
+        countSpan.textContent = count === 1 ? "1 nomination" : `${count} nominations`;
+
+        div.appendChild(nameSpan);
+        div.appendChild(countSpan);
+        container.appendChild(div);
+      }
+
+      const total = entries.reduce((sum, [, c]) => sum + c, 0);
+      footer.textContent = `${entries.length} coworkers · ${total} total nominations`;
+
+      return entries;
+    }
+
+    function renderTopThreeNaughty(counts) {
+      const top3Div = document.getElementById("naughty-top3");
+      const namesSpan = top3Div.querySelector(".names");
+
+      const entries = Object.entries(counts)
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+        .slice(0, 3);
+
+      if (!entries.length) {
+        top3Div.style.display = "none";
+        return;
+      }
+
+      const text = entries
+        .map(([name, count], index) => {
+          const place = index + 1;
+          return `${place}) ${name} (${count})`;
+        })
+        .join(" · ");
+
+      namesSpan.textContent = text;
+      top3Div.style.display = "flex";
+    }
+
+    function playSantaSound() {
+      const audio = document.getElementById("santa-audio");
+      if (!audio) return;
+      try {
+        audio.currentTime = 0;
+        audio.play().catch(() => {
+          // Ignore autoplay restrictions; user can tap once to enable
+        });
+      } catch (e) {
+        console.warn("Audio playback issue:", e);
+      }
+    }
+
+    async function refreshDashboard() {
+      const niceFooter = document.getElementById("nice-footer");
+      const naughtyFooter = document.getElementById("naughty-footer");
+      niceFooter.textContent = "Updating…";
+      naughtyFooter.textContent = "Updating…";
+
+      try {
+        const [niceCsv, naughtyCsv] = await Promise.all([
+          fetchCsv(NICE_CSV_URL, "Nice", niceFooter),
+          fetchCsv(NAUGHTY_CSV_URL, "Naughty", naughtyFooter),
+        ]);
+
+        const niceData = parseCsv(niceCsv);
+        const naughtyData = parseCsv(naughtyCsv);
+
+        const niceCounts = buildCounts(niceData, NICE_NAME_COL);
+        const naughtyCounts = buildCounts(naughtyData, NAUGHTY_NAME_COL);
+
+        renderList("nice-list", "nice-footer", niceCounts, "nice");
+        renderList("naughty-list", "naughty-footer", naughtyCounts, "naughty");
+        renderTopThreeNaughty(naughtyCounts);
+
+        // Little Santa audio cue on each refresh
+        playSantaSound();
+      } catch (err) {
+        console.error("Dashboard refresh error:", err);
+      }
+    }
+
+    // Initial load + silent auto-refresh
+    (function init() {
+      refreshDashboard();
+      setInterval(refreshDashboard, REFRESH_INTERVAL_MS);
+    })();
+  </script>
+</body>
+</html>
