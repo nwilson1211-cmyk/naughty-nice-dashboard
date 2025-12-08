@@ -605,7 +605,7 @@
       }
 
       countdownSeconds = REFRESH_INTERVAL_MS / 1000;
-      countdownEl.textContent = `Next refresh in ${countdownSeconds}s`;
+    
 
       countdownTimerId = setInterval(() => {
         countdownSeconds -= 1;
@@ -613,7 +613,7 @@
           countdownEl.textContent = "Refreshing…";
           countdownSeconds = 0;
         } else {
-          countdownEl.textContent = `Next refresh in ${countdownSeconds}s`;
+    
         }
       }, 1000);
     }
