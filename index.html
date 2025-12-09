@@ -413,7 +413,8 @@ function cacheBust(url) {
 
     async function fetchCsv(url, which, footerEl) {
       try {
-        const res = await fetch(url, { cache: "no-store" });
+        const res = await fetch(cacheBust(url), { cache: "no-store" });
+
         if (!res.ok) {
           footerEl.textContent = which + " error: HTTP " + res.status;
           throw new Error(which + " HTTP " + res.status + " " + res.statusText);
