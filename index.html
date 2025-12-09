@@ -406,6 +406,10 @@
 
     const NICE_NAME_COL    = "Who are you nominating for the NICE List?";
     const NAUGHTY_NAME_COL = "Who are you nominating for the NAUGHTY List?";
+// Add cache-busting parameter so the tablet always loads a fresh CSV
+function cacheBust(url) {
+  return url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
+}
 
     async function fetchCsv(url, which, footerEl) {
       try {
