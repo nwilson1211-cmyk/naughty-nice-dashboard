@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>Santa's Naughty & Nice Control Center</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <style>
     :root {
       --nice-color: #3ddc84;
@@ -25,81 +26,307 @@
     body {
       background: radial-gradient(circle at top, #283149 0, #14161f 45%, #05060a 100%);
       color: var(--text-main);
-      overflow: hidden;
       height: 100vh;
+      overflow: hidden;
       display: flex;
-      align-items: stretch;
       justify-content: center;
-    }
-
-    .snowflake {
-      position: fixed;
-      top: -10px;
-      color: #ffffffaa;
-      font-size: 0.8rem;
-      animation-name: fall;
-      animation-timing-function: linear;
-      animation-iteration-count: infinite;
-      pointer-events: none;
-      z-index: 1;
-    }
-
-    @keyframes fall {
-      to { transform: translateY(110vh); }
+      align-items: stretch;
     }
 
     .frame {
       position: relative;
       width: 100%;
       max-width: 1100px;
-      margin: auto;
       padding: 24px;
-    }
-
-    .lights {
-      position: absolute;
-      inset: 0;
-      padding: 10px;
-      pointer-events: none;
-    }
-
-    .lights::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      border-radius: 24px;
-      border: 3px dashed rgba(255, 255, 255, 0.3);
-      box-shadow: 0 0 25px rgba(255, 255, 255, 0.08);
-    }
-
-    .light-bulb {
-      position: absolute;
-      width: 10px;
-      height: 18px;
-      border-radius: 50%;
-      background: #fffb;
-      box-shadow: 0 0 12px currentColor;
-      animation: blink 1.6s infinite alternate;
-    }
-
-    @keyframes blink {
-      0% { opacity: 0.3; transform: scale(0.9); }
-      100% { opacity: 1; transform: scale(1.2); }
     }
 
     .header {
       text-align: center;
-      margin-bottom: 18px;
-      position: relative;
-      z-index: 2;
+      margin-bottom: 16px;
     }
 
     .title {
       font-size: 1.8rem;
-      letter-spacing: 0.15em;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
       color: var(--accent);
-      text-shadow: 0 0 18px rgba(0, 0, 0, 0.9);
       margin-bottom: 6px;
     }
 
+    .subtitle {
+      font-size: 0.9rem;
+      opacity: 0.85;
+    }
+
+    .panels {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      height: calc(100vh - 140px);
+    }
+
+    .panel {
+      background: var(--card-bg);
+      border-radius: 22px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .panel-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .tag {
+      font-size: 0.7rem;
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 999px;
+      padding: 2px 8px;
+      opacity: 0.8;
+    }
+
+    .top-three {
+      font-size: 0.75rem;
+      padding: 4px 8px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.08);
+      margin-bottom: 6px;
+      display: none;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .list {
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+
+    .entry {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      margin-bottom: 6px;
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+
+    .entry-left {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .entry-name {
+      font-size: 0.9rem;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .entry-reason {
+      font-size: 0.75rem;
+      opacity: 0.7;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .entry-count {
+      font-size: 0.8rem;
+      opacity: 0.85;
+      white-space: nowrap;
+    }
+
+    .entry--nice {
+      border-color: rgba(61,220,132,0.5);
+    }
+
+    .entry--naughty {
+      border-color: rgba(255,75,92,0.5);
+    }
+
+    .footer {
+      font-size: 0.7rem;
+      opacity: 0.7;
+      text-align: right;
+      margin-top: 4px;
+    }
+
+    @media (max-width: 900px) {
+      .panels {
+        grid-template-columns: 1fr;
+        height: auto;
+      }
+      body {
+        overflow-y: auto;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="frame">
+    <div class="header">
+      <div class="title">Santa's Naughty & Nice Control Center</div>
+      <div class="subtitle">Live coworker nominations</div>
+    </div>
+
+    <div class="panels">
+      <!-- NICE PANEL -->
+      <section class="panel">
+        <div class="panel-header">
+          <div class="panel-title">🎁 Nice List</div>
+          <div class="tag">Coworker</div>
+        </div>
+
+        <div class="top-three" id="nice-top3"></div>
+        <div class="list" id="nice-list"></div>
+        <div class="footer" id="nice-footer">Loading…</div>
+      </section>
+
+      <!-- NAUGHTY PANEL -->
+      <section class="panel">
+        <div class="panel-header">
+          <div class="panel-title">😈 Naughty List</div>
+          <div class="tag">Coworker</div>
+        </div>
+
+        <div class="top-three" id="naughty-top3"></div>
+        <div class="list" id="naughty-list"></div>
+        <div class="footer" id="naughty-footer">Loading…</div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const NICE_URL =
+      "https://raw.githubusercontent.com/nwilson1211-cmyk/naughty-nice-dashboard/main/nice.csv";
+    const NAUGHTY_URL =
+      "https://raw.githubusercontent.com/nwilson1211-cmyk/naughty-nice-dashboard/main/naughty.csv";
+
+    const REFRESH_MS = 15000;
+
+    function cacheBust(url) {
+      return url + "?t=" + Date.now();
+    }
+
+    async function loadCsv(url) {
+      const res = await fetch(cacheBust(url), { cache: "no-store" });
+      return res.text();
+    }
+
+    function parseCsv(text) {
+      const lines = text.trim().split(/\r?\n/);
+      if (lines.length < 2) return [];
+
+      const headers = lines[0].split(",");
+      const nameIdx = 0;
+      const reasonIdx = headers.length > 1 ? 1 : -1;
+
+      const rows = [];
+      for (let i = 1; i < lines.length; i++) {
+        const cols = lines[i].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
+        rows.push({
+          name: cols[nameIdx]?.replace(/(^"|"$)/g, ""),
+          reason: reasonIdx !== -1 ? cols[reasonIdx]?.replace(/(^"|"$)/g, "") : ""
+        });
+      }
+      return rows;
+    }
+
+    function render(panel, footer, top3, rows, type) {
+      panel.innerHTML = "";
+      if (!rows.length) {
+        footer.textContent = "No nominations yet – scan the QR to get started!";
+        top3.style.display = "none";
+        return;
+      }
+
+      const counts = {};
+      rows.forEach(r => {
+        if (!counts[r.name]) counts[r.name] = { count: 0, reason: "" };
+        counts[r.name].count++;
+        if (r.reason) counts[r.name].reason = r.reason;
+      });
+
+      const entries = Object.entries(counts).sort((a,b)=>b[1].count-a[1].count);
+
+      top3.textContent = "Top 3: " + entries.slice(0,3)
+        .map(([n,i],idx)=>`${idx+1}) ${n} (${i.count})`).join(" · ");
+      top3.style.display = "block";
+
+      entries.forEach(([name, info]) => {
+        const div = document.createElement("div");
+        div.className = `entry entry--${type}`;
+
+        const left = document.createElement("div");
+        left.className = "entry-left";
+
+        const n = document.createElement("div");
+        n.className = "entry-name";
+        n.textContent = name;
+
+        left.appendChild(n);
+
+        if (info.reason) {
+          const r = document.createElement("div");
+          r.className = "entry-reason";
+          r.textContent = info.reason;
+          left.appendChild(r);
+        }
+
+        const c = document.createElement("div");
+        c.className = "entry-count";
+        c.textContent = `${info.count}`;
+
+        div.appendChild(left);
+        div.appendChild(c);
+        panel.appendChild(div);
+      });
+
+      const total = entries.reduce((s,[,i])=>s+i.count,0);
+      footer.textContent = `${entries.length} people · ${total} nominations`;
+    }
+
+    async function refresh() {
+      const niceCsv = await loadCsv(NICE_URL);
+      const naughtyCsv = await loadCsv(NAUGHTY_URL);
+
+      render(
+        document.getElementById("nice-list"),
+        document.getElementById("nice-footer"),
+        document.getElementById("nice-top3"),
+        parseCsv(niceCsv),
+        "nice"
+      );
+
+      render(
+        document.getElementById("naughty-list"),
+        document.getElementById("naughty-footer"),
+        document.getElementById("naughty-top3"),
+        parseCsv(naughtyCsv),
+        "naughty"
+      );
+    }
+
+    refresh();
+    setInterval(refresh, REFRESH_MS);
+  </script>
+</body>
+</html>
