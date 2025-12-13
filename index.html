@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <title>Santa's Naughty & Nice Control Center</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
   <style>
     :root {
       --nice-color: #3ddc84;
@@ -26,49 +25,109 @@
     body {
       background: radial-gradient(circle at top, #283149 0, #14161f 45%, #05060a 100%);
       color: var(--text-main);
-      height: 100vh;
       overflow: hidden;
+      height: 100vh;
       display: flex;
-      justify-content: center;
       align-items: stretch;
+      justify-content: center;
+    }
+
+    .snowflake {
+      position: fixed;
+      top: -10px;
+      color: #ffffffaa;
+      font-size: 0.8rem;
+      animation-name: fall;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    @keyframes fall {
+      to { transform: translateY(110vh); }
     }
 
     .frame {
       position: relative;
       width: 100%;
       max-width: 1100px;
+      margin: auto;
       padding: 24px;
+      z-index: 2;
+    }
+
+    .lights {
+      position: absolute;
+      inset: 0;
+      padding: 10px;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .lights::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 24px;
+      border: 3px dashed rgba(255, 255, 255, 0.3);
+      box-shadow: 0 0 25px rgba(255, 255, 255, 0.08);
+    }
+
+    .light-bulb {
+      position: absolute;
+      width: 10px;
+      height: 18px;
+      border-radius: 50%;
+      background: #fffb;
+      box-shadow: 0 0 12px currentColor;
+      animation: blink 1.6s infinite alternate;
+    }
+
+    @keyframes blink {
+      0% { opacity: 0.3; transform: scale(0.9); }
+      100% { opacity: 1; transform: scale(1.2); }
     }
 
     .header {
       text-align: center;
-      margin-bottom: 16px;
+      margin-bottom: 18px;
+      position: relative;
+      z-index: 3;
     }
 
     .title {
       font-size: 1.8rem;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.15em;
       text-transform: uppercase;
       color: var(--accent);
+      text-shadow: 0 0 18px rgba(0, 0, 0, 0.9);
       margin-bottom: 6px;
     }
 
-    .subtitle {
+    .subtitle-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
       font-size: 0.9rem;
-      opacity: 0.85;
+      opacity: 0.9;
     }
 
     .panels {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 16px;
-      height: calc(100vh - 140px);
+      position: relative;
+      z-index: 3;
+      height: calc(100vh - 150px);
     }
 
     .panel {
       background: var(--card-bg);
       border-radius: 22px;
-      padding: 16px;
+      padding: 16px 18px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6);
       display: flex;
       flex-direction: column;
       min-height: 0;
@@ -76,59 +135,89 @@
 
     .panel-header {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      margin-bottom: 6px;
+      justify-content: space-between;
+      margin-bottom: 8px;
     }
 
     .panel-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
       font-size: 1.1rem;
       font-weight: 600;
-      display: flex;
-      gap: 8px;
-      align-items: center;
     }
 
     .tag {
       font-size: 0.7rem;
-      border: 1px solid rgba(255,255,255,0.25);
-      border-radius: 999px;
       padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
       opacity: 0.8;
     }
 
+    .panel-icon {
+      font-size: 1.3rem;
+    }
+
     .top-three {
-      font-size: 0.75rem;
+      font-size: 0.8rem;
+      margin-bottom: 6px;
       padding: 4px 8px;
       border-radius: 12px;
-      background: rgba(255,255,255,0.08);
-      margin-bottom: 6px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.18);
       display: none;
+      align-items: center;
+      gap: 6px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
+    .top-three span.label {
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      font-size: 0.72rem;
+    }
+
+    .top-three span.names {
+      opacity: 0.9;
+    }
+
     .list {
-      flex: 1;
+      margin-top: 6px;
       overflow-y: auto;
       padding-right: 6px;
+      scrollbar-width: thin;
+    }
+
+    .list::-webkit-scrollbar { width: 4px; }
+    .list::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.25);
+      border-radius: 999px;
     }
 
     .entry {
       display: flex;
+      align-items: center;
       justify-content: space-between;
-      gap: 10px;
       padding: 8px 10px;
       border-radius: 999px;
-      margin-bottom: 6px;
-      border: 1px solid rgba(255,255,255,0.15);
+      margin-bottom: 5px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid transparent;
+      gap: 10px;
     }
 
     .entry-left {
       display: flex;
       flex-direction: column;
       min-width: 0;
+      flex: 1;
     }
 
     .entry-name {
@@ -137,77 +226,106 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
     }
 
     .entry-reason {
       font-size: 0.75rem;
-      opacity: 0.7;
+      opacity: 0.75;
+      margin-top: 2px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+
+    .sparkle {
+      font-size: 0.85rem;
+      opacity: 0.95;
     }
 
     .entry-count {
       font-size: 0.8rem;
       opacity: 0.85;
       white-space: nowrap;
+      flex: 0 0 auto;
     }
 
-    .entry--nice {
-      border-color: rgba(61,220,132,0.5);
-    }
+    .entry--nice { border-color: rgba(61, 220, 132, 0.4); }
+    .entry--naughty { border-color: rgba(255, 75, 92, 0.4); }
 
-    .entry--naughty {
-      border-color: rgba(255,75,92,0.5);
+    .entry--highlight {
+      box-shadow: 0 0 12px rgba(255, 255, 255, 0.16),
+                  0 0 20px rgba(255, 215, 130, 0.4);
+      position: relative;
     }
 
     .footer {
+      margin-top: 6px;
       font-size: 0.7rem;
-      opacity: 0.7;
       text-align: right;
-      margin-top: 4px;
+      opacity: 0.7;
     }
 
     @media (max-width: 900px) {
-      .panels {
-        grid-template-columns: 1fr;
-        height: auto;
-      }
-      body {
-        overflow-y: auto;
-      }
+      .panels { grid-template-columns: 1fr; height: auto; }
+      body { overflow-y: auto; height: auto; }
     }
   </style>
 </head>
 
 <body>
+  <!-- Snowflakes -->
+  <script>
+    (function createSnow() {
+      const numFlakes = 60;
+      for (let i = 0; i < numFlakes; i++) {
+        const span = document.createElement("span");
+        span.className = "snowflake";
+        span.textContent = "❄";
+        span.style.left = (Math.random() * 100) + "vw";
+        span.style.animationDelay = (Math.random() * 5) + "s";
+        span.style.animationDuration = (8 + Math.random() * 8) + "s";
+        document.body.appendChild(span);
+      }
+    })();
+  </script>
+
   <div class="frame">
+    <div class="lights" id="lights"></div>
+
     <div class="header">
-      <div class="title">Santa's Naughty & Nice Control Center</div>
-      <div class="subtitle">Live coworker nominations</div>
+      <div class="title">Santa's Naughty &amp; Nice Control Center</div>
+      <div class="subtitle-row">
+        <span>Live coworker nominations</span>
+      </div>
     </div>
 
     <div class="panels">
-      <!-- NICE PANEL -->
       <section class="panel">
         <div class="panel-header">
-          <div class="panel-title">🎁 Nice List</div>
-          <div class="tag">Coworker</div>
+          <div class="panel-title"><span class="panel-icon">🎁</span><span>Nice List</span></div>
+          <span class="tag">Coworker Nominations</span>
         </div>
-
-        <div class="top-three" id="nice-top3"></div>
+        <div class="top-three" id="nice-top3">
+          <span class="label">Top 3 Nice:</span>
+          <span class="names"></span>
+        </div>
         <div class="list" id="nice-list"></div>
         <div class="footer" id="nice-footer">Loading…</div>
       </section>
 
-      <!-- NAUGHTY PANEL -->
       <section class="panel">
         <div class="panel-header">
-          <div class="panel-title">😈 Naughty List</div>
-          <div class="tag">Coworker</div>
+          <div class="panel-title"><span class="panel-icon">😈</span><span>Naughty List</span></div>
+          <span class="tag">Coworker Nominations</span>
         </div>
-
-        <div class="top-three" id="naughty-top3"></div>
+        <div class="top-three" id="naughty-top3">
+          <span class="label">Top 3 Naughty:</span>
+          <span class="names"></span>
+        </div>
         <div class="list" id="naughty-list"></div>
         <div class="footer" id="naughty-footer">Loading…</div>
       </section>
@@ -215,118 +333,267 @@
   </div>
 
   <script>
-    const NICE_URL =
+    // Perimeter lights
+    (function createLights() {
+      const lights = document.getElementById("lights");
+      const positions = 40;
+      for (let i = 0; i < positions; i++) {
+        const bulb = document.createElement("div");
+        bulb.className = "light-bulb";
+
+        const edge = i % 4;
+        const offset = (i % 10) * 10;
+
+        const colors = ["#ff4b5c", "#3ddc84", "#ffd66b", "#66a3ff"];
+        bulb.style.color = colors[i % colors.length];
+        bulb.style.animationDelay = (Math.random() * 2) + "s";
+
+        if (edge === 0) { bulb.style.top = "4px";    bulb.style.left = (5 + offset) + "%"; }
+        if (edge === 1) { bulb.style.bottom = "4px"; bulb.style.left = (5 + offset) + "%"; }
+        if (edge === 2) { bulb.style.left = "4px";   bulb.style.top = (5 + offset) + "%"; }
+        if (edge === 3) { bulb.style.right = "4px";  bulb.style.top = (5 + offset) + "%"; }
+
+        lights.appendChild(bulb);
+      }
+    })();
+
+    const REFRESH_INTERVAL_MS = 15000;
+
+    const NICE_CSV_URL =
       "https://raw.githubusercontent.com/nwilson1211-cmyk/naughty-nice-dashboard/main/nice.csv";
-    const NAUGHTY_URL =
+    const NAUGHTY_CSV_URL =
       "https://raw.githubusercontent.com/nwilson1211-cmyk/naughty-nice-dashboard/main/naughty.csv";
 
-    const REFRESH_MS = 15000;
-
+    // Cache-busting so tablets don’t get stale CSV
     function cacheBust(url) {
-      return url + "?t=" + Date.now();
+      return url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
     }
 
-    async function loadCsv(url) {
+    async function fetchCsv(url) {
       const res = await fetch(cacheBust(url), { cache: "no-store" });
-      return res.text();
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      return await res.text();
     }
 
+    // Robust CSV parser for quoted cells
     function parseCsv(text) {
       const lines = text.trim().split(/\r?\n/);
-      if (lines.length < 2) return [];
+      if (lines.length < 1) return { headers: [], rows: [] };
 
-      const headers = lines[0].split(",");
-      const nameIdx = 0;
-      const reasonIdx = headers.length > 1 ? 1 : -1;
+      const parseLine = (line) => {
+        const parts = [];
+        let inQuotes = false;
+        let current = "";
+        for (let i = 0; i < line.length; i++) {
+          const ch = line[i];
+          if (ch === '"' && line[i + 1] === '"') { current += '"'; i++; }
+          else if (ch === '"') inQuotes = !inQuotes;
+          else if (ch === "," && !inQuotes) { parts.push(current); current = ""; }
+          else current += ch;
+        }
+        parts.push(current);
+        return parts.map(v => v.replace(/^"|"$/g, "").trim());
+      };
 
-      const rows = [];
-      for (let i = 1; i < lines.length; i++) {
-        const cols = lines[i].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
-        rows.push({
-          name: cols[nameIdx]?.replace(/(^"|"$)/g, ""),
-          reason: reasonIdx !== -1 ? cols[reasonIdx]?.replace(/(^"|"$)/g, "") : ""
-        });
-      }
-      return rows;
+      const headers = parseLine(lines[0]);
+      const rows = lines.slice(1).filter(Boolean).map(parseLine);
+      return { headers, rows };
     }
 
-    function render(panel, footer, top3, rows, type) {
-      panel.innerHTML = "";
-      if (!rows.length) {
-        footer.textContent = "No nominations yet – scan the QR to get started!";
+    function normalizeHeader(h) {
+      return (h || "").toLowerCase().replace(/\s+/g, " ").trim();
+    }
+
+    function findNameCol(headers, listType) {
+      const norm = headers.map(normalizeHeader);
+      // Prefer the “nominating” question
+      let idx = norm.findIndex(h => h.includes("who are you nominating") && h.includes(listType));
+      if (idx !== -1) return idx;
+
+      // Fallback: first column
+      return 0;
+    }
+
+    function findReasonCol(headers) {
+      const norm = headers.map(normalizeHeader);
+
+      // Common patterns
+      let idx = norm.findIndex(h => h.includes("reason"));
+      if (idx !== -1) return idx;
+
+      idx = norm.findIndex(h => h.includes("why") && !h.includes("who are you nominating"));
+      if (idx !== -1) return idx;
+
+      idx = norm.findIndex(h => h.includes("optional") && !h.includes("who are you nominating"));
+      if (idx !== -1) return idx;
+
+      return -1;
+    }
+
+    function buildCounts(data, listType) {
+      const nameIdx = findNameCol(data.headers, listType);
+      const reasonIdx = findReasonCol(data.headers);
+
+      const counts = {};
+      for (const row of data.rows) {
+        const name = (row[nameIdx] || "").trim();
+        if (!name) continue;
+
+        if (!counts[name]) counts[name] = { count: 0, reason: "" };
+        counts[name].count += 1;
+
+        // Save the most recent non-empty reason for that name
+        if (reasonIdx !== -1) {
+          const reason = (row[reasonIdx] || "").trim();
+          if (reason) counts[name].reason = reason;
+        }
+      }
+      return counts;
+    }
+
+    function renderTopThree(elId, countsObj) {
+      const top3 = document.getElementById(elId);
+      const namesSpan = top3.querySelector(".names");
+
+      const entries = Object.entries(countsObj)
+        .sort((a, b) => b[1].count - a[1].count || a[0].localeCompare(b[0]))
+        .slice(0, 3);
+
+      if (!entries.length) {
         top3.style.display = "none";
         return;
       }
 
-      const counts = {};
-      rows.forEach(r => {
-        if (!counts[r.name]) counts[r.name] = { count: 0, reason: "" };
-        counts[r.name].count++;
-        if (r.reason) counts[r.name].reason = r.reason;
-      });
+      namesSpan.textContent = entries
+        .map(([name, info], i) => `${i + 1}) ${name} (${info.count})`)
+        .join(" · ");
 
-      const entries = Object.entries(counts).sort((a,b)=>b[1].count-a[1].count);
+      top3.style.display = "flex";
+    }
 
-      top3.textContent = "Top 3: " + entries.slice(0,3)
-        .map(([n,i],idx)=>`${idx+1}) ${n} (${i.count})`).join(" · ");
-      top3.style.display = "block";
+    function renderList(containerId, footerId, countsObj, type) {
+      const container = document.getElementById(containerId);
+      const footer = document.getElementById(footerId);
 
-      entries.forEach(([name, info]) => {
+      container.innerHTML = "";
+      container.scrollTop = 0;
+
+      const entries = Object.entries(countsObj)
+        .sort((a, b) => b[1].count - a[1].count || a[0].localeCompare(b[0]));
+
+      if (!entries.length) {
+        footer.textContent = "No nominations yet – scan the QR to get started!";
+        return;
+      }
+
+      for (const [name, info] of entries) {
         const div = document.createElement("div");
-        div.className = `entry entry--${type}`;
+        div.className = "entry entry--" + type;
+
+        if (info.count >= 2) div.classList.add("entry--highlight");
 
         const left = document.createElement("div");
         left.className = "entry-left";
 
-        const n = document.createElement("div");
-        n.className = "entry-name";
-        n.textContent = name;
+        const nameRow = document.createElement("div");
+        nameRow.className = "entry-name";
 
-        left.appendChild(n);
-
-        if (info.reason) {
-          const r = document.createElement("div");
-          r.className = "entry-reason";
-          r.textContent = info.reason;
-          left.appendChild(r);
+        if (info.count >= 2) {
+          const sparkle = document.createElement("span");
+          sparkle.className = "sparkle";
+          sparkle.textContent = "✨";
+          nameRow.appendChild(sparkle);
         }
 
-        const c = document.createElement("div");
-        c.className = "entry-count";
-        c.textContent = `${info.count}`;
+        const textNode = document.createElement("span");
+        textNode.textContent = name;
+        nameRow.appendChild(textNode);
+
+        left.appendChild(nameRow);
+
+        if (info.reason) {
+          const reasonDiv = document.createElement("div");
+          reasonDiv.className = "entry-reason";
+          reasonDiv.textContent = info.reason;
+          left.appendChild(reasonDiv);
+        }
+
+        const countSpan = document.createElement("div");
+        countSpan.className = "entry-count";
+        countSpan.textContent = info.count === 1 ? "1 nomination" : `${info.count} nominations`;
 
         div.appendChild(left);
-        div.appendChild(c);
-        panel.appendChild(div);
-      });
+        div.appendChild(countSpan);
+        container.appendChild(div);
+      }
 
-      const total = entries.reduce((s,[,i])=>s+i.count,0);
-      footer.textContent = `${entries.length} people · ${total} nominations`;
+      const total = entries.reduce((sum, [, info]) => sum + info.count, 0);
+      footer.textContent = `${entries.length} coworkers · ${total} total nominations`;
     }
 
-    async function refresh() {
-      const niceCsv = await loadCsv(NICE_URL);
-      const naughtyCsv = await loadCsv(NAUGHTY_URL);
+    // Continuous auto-scroll when overflow
+    function enableAutoScroll(containerId, speedMs = 35, pauseMs = 2000) {
+      const el = document.getElementById(containerId);
+      if (!el) return;
+      if (el.dataset.autoscroll === "1") return;
+      el.dataset.autoscroll = "1";
 
-      render(
-        document.getElementById("nice-list"),
-        document.getElementById("nice-footer"),
-        document.getElementById("nice-top3"),
-        parseCsv(niceCsv),
-        "nice"
-      );
+      let paused = false;
 
-      render(
-        document.getElementById("naughty-list"),
-        document.getElementById("naughty-footer"),
-        document.getElementById("naughty-top3"),
-        parseCsv(naughtyCsv),
-        "naughty"
-      );
+      setInterval(() => {
+        if (paused) return;
+        if (el.scrollHeight <= el.clientHeight + 2) return;
+
+        el.scrollTop += 1;
+
+        if (el.scrollTop >= (el.scrollHeight - el.clientHeight - 2)) {
+          paused = true;
+          setTimeout(() => {
+            el.scrollTop = 0;
+            paused = false;
+          }, pauseMs);
+        }
+      }, speedMs);
     }
 
-    refresh();
-    setInterval(refresh, REFRESH_MS);
+    async function refreshDashboard() {
+      const niceFooter = document.getElementById("nice-footer");
+      const naughtyFooter = document.getElementById("naughty-footer");
+
+      niceFooter.textContent = "Updating…";
+      naughtyFooter.textContent = "Updating…";
+
+      try {
+        const [niceCsv, naughtyCsv] = await Promise.all([
+          fetchCsv(NICE_CSV_URL),
+          fetchCsv(NAUGHTY_CSV_URL),
+        ]);
+
+        const niceData = parseCsv(niceCsv);
+        const naughtyData = parseCsv(naughtyCsv);
+
+        const niceCounts = buildCounts(niceData, "nice");
+        const naughtyCounts = buildCounts(naughtyData, "naughty");
+
+        renderTopThree("nice-top3", niceCounts);
+        renderTopThree("naughty-top3", naughtyCounts);
+
+        renderList("nice-list", "nice-footer", niceCounts, "nice");
+        renderList("naughty-list", "naughty-footer", naughtyCounts, "naughty");
+      } catch (e) {
+        console.error(e);
+        niceFooter.textContent = "Update error";
+        naughtyFooter.textContent = "Update error";
+      }
+    }
+
+    (function init() {
+      refreshDashboard();
+      setInterval(refreshDashboard, REFRESH_INTERVAL_MS);
+
+      enableAutoScroll("nice-list", 35, 2000);
+      enableAutoScroll("naughty-list", 35, 2000);
+    })();
   </script>
 </body>
 </html>
