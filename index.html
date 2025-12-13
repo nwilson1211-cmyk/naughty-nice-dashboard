@@ -338,6 +338,13 @@
           </div>
           <span class="tag">Coworker Nominations</span>
         </div>
+
+        <!-- TOP 3 NICE -->
+        <div class="top-three" id="nice-top3" style="display:none;">
+          <span class="label">Top 3 Nice:</span>
+          <span class="names"></span>
+        </div>
+
         <div class="list" id="nice-list"></div>
         <div class="footer" id="nice-footer">Loading…</div>
       </section>
@@ -350,10 +357,13 @@
           </div>
           <span class="tag">Coworker Nominations</span>
         </div>
+
+        <!-- TOP 3 NAUGHTY -->
         <div class="top-three" id="naughty-top3" style="display:none;">
           <span class="label">Top 3 Naughty:</span>
           <span class="names"></span>
         </div>
+
         <div class="list" id="naughty-list"></div>
         <div class="footer" id="naughty-footer">Loading…</div>
       </section>
@@ -400,18 +410,18 @@
     const REFRESH_INTERVAL_MS = 15000; // 15 seconds
 
     const NICE_CSV_URL =
-  "https://raw.githubusercontent.com/nwilson1211-cmyk/naughty-nice-dashboard/main/nice.csv";
+      "https://raw.githubusercontent.com/nwilson1211-cmyk/naughty-nice-dashboard/main/nice.csv";
 
-const NAUGHTY_CSV_URL =
-  "https://raw.githubusercontent.com/nwilson1211-cmyk/naughty-nice-dashboard/main/naughty.csv";
-
+    const NAUGHTY_CSV_URL =
+      "https://raw.githubusercontent.com/nwilson1211-cmyk/naughty-nice-dashboard/main/naughty.csv";
 
     const NICE_NAME_COL    = "Who are you nominating for the NICE List?";
     const NAUGHTY_NAME_COL = "Who are you nominating for the NAUGHTY List?";
-// Add cache-busting parameter so the tablet always loads a fresh CSV
-function cacheBust(url) {
-  return url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
-}
+
+    // Add cache-busting parameter so the tablet always loads a fresh CSV
+    function cacheBust(url) {
+      return url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
+    }
 
     async function fetchCsv(url, which, footerEl) {
       try {
@@ -479,6 +489,9 @@ function cacheBust(url) {
       const entries = Object.entries(counts)
         .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
 
+      // Reset scroll position on re-render (auto-scroll will continue)
+      container.scrollTop = 0;
+
       if (entries.length === 0) {
         footer.textContent = "No nominations yet – scan the QR to get started!";
         return entries;
@@ -523,8 +536,10 @@ function cacheBust(url) {
       return entries;
     }
 
-    function renderTopThreeNaughty(counts) {
-      const top3Div = document.getElementById("naughty-top3");
+    // Top 3 renderer for both panels
+    function renderTopThree(containerId, counts) {
+      const top3Div = document.getElementById(containerId);
+      if (!top3Div) return;
       const namesSpan = top3Div.querySelector(".names");
 
       const entries = Object.entries(counts)
@@ -536,14 +551,10 @@ function cacheBust(url) {
         return;
       }
 
-      const text = entries
-        .map(([name, count], index) => {
-          const place = index + 1;
-          return `${place}) ${name} (${count})`;
-        })
+      namesSpan.textContent = entries
+        .map(([name, count], index) => `${index + 1}) ${name} (${count})`)
         .join(" · ");
 
-      namesSpan.textContent = text;
       top3Div.style.display = "flex";
     }
 
@@ -558,6 +569,37 @@ function cacheBust(url) {
       } catch (e) {
         console.warn("Audio playback issue:", e);
       }
+    }
+
+    // Continuous auto-scroll (scrolls down, pauses at bottom, jumps to top, repeats)
+    function enableAutoScroll(containerId, speed = 35, pauseMs = 2000) {
+      const el = document.getElementById(containerId);
+      if (!el) return;
+
+      // Avoid creating multiple intervals if init is ever called again
+      if (el.dataset.autoscroll === "1") return;
+      el.dataset.autoscroll = "1";
+
+      let paused = false;
+
+      setInterval(() => {
+        if (paused) return;
+
+        // Only scroll if content overflows
+        if (el.scrollHeight <= el.clientHeight + 2) return;
+
+        // Move down 1px per tick (smooth). speed controls how often this runs.
+        el.scrollTop = el.scrollTop + 1;
+
+        // If we're at/near bottom, pause then reset to top
+        if (el.scrollTop >= (el.scrollHeight - el.clientHeight - 2)) {
+          paused = true;
+          setTimeout(() => {
+            el.scrollTop = 0;
+            paused = false;
+          }, pauseMs);
+        }
+      }, speed);
     }
 
     async function refreshDashboard() {
@@ -578,9 +620,11 @@ function cacheBust(url) {
         const niceCounts = buildCounts(niceData, NICE_NAME_COL);
         const naughtyCounts = buildCounts(naughtyData, NAUGHTY_NAME_COL);
 
+        renderTopThree("nice-top3", niceCounts);
+        renderTopThree("naughty-top3", naughtyCounts);
+
         renderList("nice-list", "nice-footer", niceCounts, "nice");
         renderList("naughty-list", "naughty-footer", naughtyCounts, "naughty");
-        renderTopThreeNaughty(naughtyCounts);
 
         // Little Santa audio cue on each refresh
         playSantaSound();
@@ -589,11 +633,16 @@ function cacheBust(url) {
       }
     }
 
-    // Initial load + silent auto-refresh
+    // Initial load + silent auto-refresh + continuous scrolling
     (function init() {
       refreshDashboard();
       setInterval(refreshDashboard, REFRESH_INTERVAL_MS);
+
+      // Start continuous scrolling for both lists (adjust values if desired)
+      enableAutoScroll("nice-list", 35, 2000);
+      enableAutoScroll("naughty-list", 35, 2000);
     })();
   </script>
 </body>
 </html>
+
