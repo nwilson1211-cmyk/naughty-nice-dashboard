@@ -417,7 +417,8 @@
 
     const NICE_NAME_COL    = "Who are you nominating for the NICE List?";
     const NAUGHTY_NAME_COL = "Who are you nominating for the NAUGHTY List?";
-
+const NICE_REASON_COL    = "Why are you nominating them for the NICE List? (optional)";
+const NAUGHTY_REASON_COL = "Why are you nominating them for the NAUGHTY List? (optional)";
     // Add cache-busting parameter so the tablet always loads a fresh CSV
     function cacheBust(url) {
       return url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
